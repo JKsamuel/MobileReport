@@ -30,6 +30,7 @@
         {
             this.metroTabControl1 = new MetroFramework.Controls.MetroTabControl();
             this.metroTabPage1 = new MetroFramework.Controls.MetroTabPage();
+            this.lblHome = new System.Windows.Forms.Label();
             this.lstStatus = new System.Windows.Forms.ListBox();
             this.btnCreate = new MetroFramework.Controls.MetroTile();
             this.label2 = new System.Windows.Forms.Label();
@@ -52,11 +53,14 @@
             this.lblBell = new System.Windows.Forms.Label();
             this.btnBellReport = new MetroFramework.Controls.MetroTile();
             this.btnBellFile = new MetroFramework.Controls.MetroTile();
+            this.metroTabPage5 = new MetroFramework.Controls.MetroTabPage();
+            this.lblContact = new System.Windows.Forms.Label();
             this.metroTabControl1.SuspendLayout();
             this.metroTabPage1.SuspendLayout();
             this.metroTabPage2.SuspendLayout();
             this.metroTabPage3.SuspendLayout();
             this.metroTabPage4.SuspendLayout();
+            this.metroTabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
             // metroTabControl1
@@ -65,16 +69,18 @@
             this.metroTabControl1.Controls.Add(this.metroTabPage2);
             this.metroTabControl1.Controls.Add(this.metroTabPage3);
             this.metroTabControl1.Controls.Add(this.metroTabPage4);
+            this.metroTabControl1.Controls.Add(this.metroTabPage5);
             this.metroTabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.metroTabControl1.Location = new System.Drawing.Point(0, 60);
             this.metroTabControl1.Name = "metroTabControl1";
-            this.metroTabControl1.SelectedIndex = 1;
+            this.metroTabControl1.SelectedIndex = 3;
             this.metroTabControl1.Size = new System.Drawing.Size(416, 326);
             this.metroTabControl1.TabIndex = 0;
             this.metroTabControl1.UseSelectable = true;
             // 
             // metroTabPage1
             // 
+            this.metroTabPage1.Controls.Add(this.lblHome);
             this.metroTabPage1.Controls.Add(this.lstStatus);
             this.metroTabPage1.Controls.Add(this.btnCreate);
             this.metroTabPage1.Controls.Add(this.label2);
@@ -92,7 +98,15 @@
             this.metroTabPage1.Text = "Home";
             this.metroTabPage1.VerticalScrollbarBarColor = true;
             this.metroTabPage1.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage1.VerticalScrollbarSize = 5;
+            this.metroTabPage1.VerticalScrollbarSize = 3;
+            // 
+            // lblHome
+            // 
+            this.lblHome.BackColor = System.Drawing.Color.White;
+            this.lblHome.Location = new System.Drawing.Point(236, 87);
+            this.lblHome.Name = "lblHome";
+            this.lblHome.Size = new System.Drawing.Size(169, 90);
+            this.lblHome.TabIndex = 8;
             // 
             // lstStatus
             // 
@@ -145,7 +159,7 @@
             this.lstReference.FormattingEnabled = true;
             this.lstReference.Location = new System.Drawing.Point(236, 45);
             this.lstReference.Name = "lstReference";
-            this.lstReference.Size = new System.Drawing.Size(169, 78);
+            this.lstReference.Size = new System.Drawing.Size(169, 39);
             this.lstReference.TabIndex = 0;
             // 
             // btnAREACODE
@@ -189,7 +203,7 @@
             this.metroTabPage2.Text = "Rogers";
             this.metroTabPage2.VerticalScrollbarBarColor = true;
             this.metroTabPage2.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage2.VerticalScrollbarSize = 5;
+            this.metroTabPage2.VerticalScrollbarSize = 3;
             // 
             // lblDescRog
             // 
@@ -261,7 +275,7 @@
             this.metroTabPage3.Text = "Verizon";
             this.metroTabPage3.VerticalScrollbarBarColor = true;
             this.metroTabPage3.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage3.VerticalScrollbarSize = 5;
+            this.metroTabPage3.VerticalScrollbarSize = 3;
             // 
             // lblverizonGL
             // 
@@ -323,7 +337,7 @@
             this.metroTabPage4.Text = "Bell";
             this.metroTabPage4.VerticalScrollbarBarColor = true;
             this.metroTabPage4.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage4.VerticalScrollbarSize = 5;
+            this.metroTabPage4.VerticalScrollbarSize = 3;
             // 
             // lblBellGLAR
             // 
@@ -369,6 +383,31 @@
             this.btnBellFile.MouseLeave += new System.EventHandler(this.btnBellFile_MouseLeave);
             this.btnBellFile.MouseHover += new System.EventHandler(this.btnBellFile_MouseHover);
             // 
+            // metroTabPage5
+            // 
+            this.metroTabPage5.Controls.Add(this.lblContact);
+            this.metroTabPage5.HorizontalScrollbarBarColor = true;
+            this.metroTabPage5.HorizontalScrollbarHighlightOnWheel = false;
+            this.metroTabPage5.HorizontalScrollbarSize = 10;
+            this.metroTabPage5.Location = new System.Drawing.Point(4, 38);
+            this.metroTabPage5.Name = "metroTabPage5";
+            this.metroTabPage5.Size = new System.Drawing.Size(408, 284);
+            this.metroTabPage5.TabIndex = 4;
+            this.metroTabPage5.Text = "Contact";
+            this.metroTabPage5.VerticalScrollbarBarColor = true;
+            this.metroTabPage5.VerticalScrollbarHighlightOnWheel = false;
+            this.metroTabPage5.VerticalScrollbarSize = 9;
+            // 
+            // lblContact
+            // 
+            this.lblContact.Location = new System.Drawing.Point(11, 19);
+            this.lblContact.Name = "lblContact";
+            this.lblContact.Size = new System.Drawing.Size(384, 252);
+            this.lblContact.TabIndex = 2;
+            this.lblContact.Text = "Creeated by Samuel Jongeun Kim\r\n\r\n- Target framework: .NET Framework 4.8\r\n- Used " +
+    "skills: ADO.NET(DataSet, OleDB), LINQ\r\n- Platform target: 64bit\r\n- https://githu" +
+    "b.com/JKsamuel/MobileReport\r\n\r\n";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
@@ -387,6 +426,7 @@
             this.metroTabPage2.ResumeLayout(false);
             this.metroTabPage3.ResumeLayout(false);
             this.metroTabPage4.ResumeLayout(false);
+            this.metroTabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -417,6 +457,9 @@
         private MetroFramework.Controls.MetroTile btnBellFile;
         private System.Windows.Forms.Label lblverizonGL;
         private System.Windows.Forms.Label lblBellGLAR;
+        private System.Windows.Forms.Label lblHome;
+        private MetroFramework.Controls.MetroTabPage metroTabPage5;
+        private System.Windows.Forms.Label lblContact;
     }
 }
 

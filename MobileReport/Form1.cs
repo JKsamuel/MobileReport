@@ -18,8 +18,11 @@ namespace MobileReport
         public Form1()
         {
             InitializeComponent();
+            
             lblverizonGL.Text = "You must upload GLCODE file first before you upload Verizon Overview invoice";
-           
+            lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+            lstStatus.SelectedIndex = -1;
+            
         }
 
         private static Excel.Application integratedReport = new Excel.Application();
@@ -50,10 +53,14 @@ namespace MobileReport
         private string fileNameGLCODE = null;
         private string fileNameAREACODE = null;
         private string fileNameVerizon = null;
-        private string fileNameBell = null;
-        private string bellmsg = null;
+        private string fileNameBell = null;       
         
         private int tableHeadRow = 8;
+
+        // Messages on label
+        private string rogersMsg = null;
+        private string verizonMsg = null;
+        private string bellMsg = null;
 
         private string Openfile()
         {
@@ -95,6 +102,9 @@ namespace MobileReport
             verizonDT = verizonData.Tables[0];
 
             int endRow = verizonDT.Rows.Count;
+            string verizonCount = String.Format("{0}users uploaded", endRow);
+            MessageBox.Show(verizonCount);
+
             Excel.Application originalFile = new Excel.Application();
             Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameVerizon);
             Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
@@ -119,6 +129,7 @@ namespace MobileReport
             }
             string msg = "Re-created the file and has been saved\n";
             lblVerizon.Text = msg;
+
             foreach (DataRow dr in verizonDT.Rows)
             {
                 dr["Wireless number"] = dr["Wireless number"].ToString().Replace("-", string.Empty);
@@ -168,6 +179,8 @@ namespace MobileReport
                 dr["Overcharges"] = Convert.ToDouble(dr["TMC"]) - Convert.ToDouble(dr["Subtotal"]);
             }
             lstStatus.Items.Add(path);
+            lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+            lstStatus.SelectedIndex = -1;
             msg += "Data table has been re-created";
             lblVerizon.Text = msg;
 
@@ -364,6 +377,10 @@ namespace MobileReport
             bellData = connection.OpenExcelSheet(fileNameBell, sheet);
             bellDT = bellData.Tables[0];
 
+            int endRow = bellDT.Rows.Count;
+            string bellCount = String.Format("{0}users uploaded", endRow);
+            MessageBox.Show(bellCount);
+
             bellDTverified.Columns.Add("User Number", typeof(string));
             bellDTverified.Columns.Add("User Name", typeof(string));
             bellDTverified.Columns.Add("MRC", typeof(decimal));
@@ -386,8 +403,8 @@ namespace MobileReport
                     Convert.ToDecimal(dr["QST - Telec"].ToString()) + Convert.ToDecimal(dr["QST - Other"].ToString()) + Convert.ToDecimal(dr["P#E#I# PST "].ToString()) +
                     Convert.ToDecimal(dr["BC PST     "].ToString()) + Convert.ToDecimal(dr["Sask       "].ToString()) + Convert.ToDecimal(dr["Manitoba   "].ToString()) +
                     Convert.ToDecimal(dr["Foreign tax"].ToString());
-                string firstname = dr["Surname             "].ToString().Trim();
-                string lastname = dr["Given Name   "].ToString().Trim();
+                string lastname = dr["Surname             "].ToString().Trim();
+                string firstname = dr["Given Name   "].ToString().Trim();
                 bellDTverified.Rows.Add(dr["Mobile Nbr"], string.Concat(firstname," ", lastname),
                     dr["Mth Chg Ttl"], tax, dr["Ttl Charges"], dr["Ftr Chg Ttl"], dr["Txt Msg Amt"], dr["Airtime Chg"], dr["Data Chg   "], dr["Roamer Chg "],
                     dr["Roamer LD  "], dr["Other Chgs "], dr["Disc Ttl   "], dr["Rm datachrg"]);
@@ -550,20 +567,39 @@ namespace MobileReport
                     string txt = "writing {0} rows / {1} rows";
                     string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
                     lblDescRog.Text = statusTxt;
+                    lblHome.Text = statusTxt;
+
                 }
                 else if(vendor == "Verizon")
                 {
                     string txt = "writing {0} rows / {1} rows";
                     string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
                     lblVerizon.Text = statusTxt;
+                    lblHome.Text = statusTxt;
                 }
                 else if(vendor == "Bell")
                 {
                     string txt = "writing {0} rows / {1} rows";
                     string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
                     lblBell.Text = statusTxt;
-                }
-                               
+                    lblHome.Text = statusTxt;
+                }                               
+            }
+            string msg = null;
+            if(vendor == "Rogers")
+            {
+                msg += "Rogers report created\n";
+                lblHome.Text = msg;
+            }
+            else if(vendor == "Verizon")
+            {
+                msg += "Verizon report created\n";
+                lblHome.Text = msg;
+            }
+            else
+            {
+                msg += "Bell report created";
+                lblHome.Text = msg;
             }
         }
 
@@ -629,52 +665,77 @@ namespace MobileReport
 
         private void btnGLCODE_Click(object sender, EventArgs e)
         {
-            Connect connectExcel = new Connect();
-            fileNameGLCODE = Openfile();
-            string[] sheetNames = connectExcel.ExcelSheetNames(fileNameGLCODE);
-            string sheetName = sheetNames[0];
-            string Path = fileNameGLCODE.Split('\\')[fileNameGLCODE.Split('\\').Length - 1];
-            lstReference.Items.Add(Path);
-
-            DataSet dataset = connectExcel.OpenExcelSheet(fileNameGLCODE, sheetName);
-            dataGLCODE = dataset.Tables[0];
-
-            foreach (DataRow dr in dataGLCODE.Rows)
+            try
             {
-                GLcode glcode = new GLcode(dr["User Number"], dr["GL Number"], dr["Division"], dr["Position"], dr["UserName"]);
-                glCodes.Add(glcode);
-            }
-            string msgGL = "GLCODE file has been loaded.";
-            lstStatus.Items.Add(msgGL);
-            lblverizonGL.Text = msgGL;
-            bellmsg = msgGL + "\n";
-            lblBellGLAR.Text = bellmsg;
+                Connect connectExcel = new Connect();
+                fileNameGLCODE = Openfile();
+                string[] sheetNames = connectExcel.ExcelSheetNames(fileNameGLCODE);
+                string sheetName = sheetNames[0];
+                string Path = fileNameGLCODE.Split('\\')[fileNameGLCODE.Split('\\').Length - 1];
 
-            MessageBox.Show(msgGL);
+                DataSet dataset = connectExcel.OpenExcelSheet(fileNameGLCODE, sheetName);
+                dataGLCODE = dataset.Tables[0];
+
+                foreach (DataRow dr in dataGLCODE.Rows)
+                {
+                    GLcode glcode = new GLcode(dr["User Number"], dr["GL Number"], dr["Division"], dr["Position"], dr["UserName"]);
+                    glCodes.Add(glcode);
+                }
+
+                lstReference.Items.Add(Path);
+                string msgGL = "GLCODE file has been loaded.";
+                lstStatus.Items.Add(msgGL);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+                lblverizonGL.Text = msgGL;
+                lblBellGLAR.Text = msgGL;
+                lblDescRog.Text = msgGL;
+                MessageBox.Show(msgGL);
+            }
+            catch (Exception exception)
+            {
+                string msg = exception.Message + "\n" + "Please pick valid GLCODE file";
+                MessageBox.Show(msg);
+                fileNameGLCODE = null;                
+            }
         }
 
         private void btnAREACODE_Click(object sender, EventArgs e)
         {
-            Connect connectExcel = new Connect();
-            fileNameAREACODE = Openfile();
-            string[] sheetNames = connectExcel.ExcelSheetNames(fileNameAREACODE);
-            string sheetName = sheetNames[0];
-            string Path = fileNameAREACODE.Split('\\')[fileNameAREACODE.Split('\\').Length - 1];
-            lstReference.Items.Add(Path);
-
-            DataSet dataset = connectExcel.OpenExcelSheet(fileNameAREACODE, sheetName);
-            dataAREACODE = dataset.Tables[0];
-
-            foreach (DataRow dr2 in dataAREACODE.Rows)
+            try
             {
-                Area area = new Area(dr2["Area Code"], dr2["Province"], dr2["Tax"]);
-                areas.Add(area);
+                Connect connectExcel = new Connect();
+                fileNameAREACODE = Openfile();
+                string[] sheetNames = connectExcel.ExcelSheetNames(fileNameAREACODE);
+                string sheetName = sheetNames[0];
+                string Path = fileNameAREACODE.Split('\\')[fileNameAREACODE.Split('\\').Length - 1];
+                
+
+                DataSet dataset = connectExcel.OpenExcelSheet(fileNameAREACODE, sheetName);
+                dataAREACODE = dataset.Tables[0];
+
+                foreach (DataRow dr2 in dataAREACODE.Rows)
+                {
+                    Area area = new Area(dr2["Area Code"], dr2["Province"], dr2["Tax"]);
+                    areas.Add(area);
+                }
+
+                lstReference.Items.Add(Path);
+                
+                string msgArea = "AREA CODE file has been loaded.\n";
+                lstStatus.Items.Add(msgArea);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+                lblBellGLAR.Text = msgArea;
+                lblDescRog.Text = msgArea;
+                MessageBox.Show(msgArea);
             }
-            string msgArea = "AREA CODE file has been loaded.";
-            lstStatus.Items.Add(msgArea);
-            bellmsg += msgArea;
-            lblBellGLAR.Text = bellmsg;
-            MessageBox.Show(msgArea);
+            catch(Exception exception)
+            {
+                string msg = exception.Message + "\n" + "Please pick valid AREA file";
+                MessageBox.Show(msg);
+                fileNameAREACODE = null;
+            }
         }
 
         private void btnRogers_CCD_MouseHover(object sender, EventArgs e)
@@ -719,314 +780,375 @@ namespace MobileReport
 
         private void btnRogers_CCD_Click(object sender, EventArgs e)
         {
-            fileNameCCD = Openfile();
-            string ccdPath = fileNameCCD.Split('\\')[fileNameCCD.Split('\\').Length - 1];
-            lstStatus.Items.Add(ccdPath);
-            lblDescRog.Text = " ";
-            lblDescRog.Text = string.Concat(ccdPath, "\nLoading....");
-            string statusMSG = lblDescRog.Text;
-            Excel.Application originalFile = new Excel.Application();
-            Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameCCD);
-            Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
-            Excel.Range rg = ws.Cells[1, 1];
-            string statusMSG3 = null;
-            string statusMSG4 = null;
-
             try
             {
-                originalFile.Visible = false;
-                if (rg.Text != "Billing Account")
+                fileNameCCD = Openfile();
+                string ccdPath = fileNameCCD.Split('\\')[fileNameCCD.Split('\\').Length - 1];
+                lstStatus.Items.Add(ccdPath);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+                lblDescRog.Text = " ";
+                lblDescRog.Text = string.Concat(ccdPath, "\nLoading....");
+                string statusMSG = lblDescRog.Text;
+                Excel.Application originalFile = new Excel.Application();
+                Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameCCD);
+                Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
+                Excel.Range rg = ws.Cells[1, 1];
+                string statusMSG3 = null;
+                string statusMSG4 = null;
+                bool valid = ccdPath.Contains("Rogers");
+                bool valid2 = ccdPath.Contains("Monthly");
+                try
                 {
-                    lblDescRog.Text = statusMSG + "\n invalid data, re-create this file.";
-                    string statusMSG2 = lblDescRog.Text;
-                    rg.EntireRow.Delete();
-                    workbookTheFile.Save();
-                    workbookTheFile.Close();
-                    lblDescRog.Text = statusMSG2 + "\n The file has been re-created.";
-                    statusMSG3 = lblDescRog.Text + "\n";
+                    originalFile.Visible = false;
+                    if (valid == true && valid2 == true)
+                    {
+                        if (rg.Text != "Billing Account")
+                        {
+                            lblDescRog.Text = statusMSG + "\n invalid data, re-create this file.";
+                            string statusMSG2 = lblDescRog.Text;
+                            rg.EntireRow.Delete();
+                            workbookTheFile.Save();
+                            workbookTheFile.Close();
+                            lblDescRog.Text = statusMSG2 + "\n The file has been re-created.";
+                            statusMSG3 = lblDescRog.Text + "\n";
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Are you sure this is Rogers - Monthly Charges breakdown Report?");
+                        ccdPath = null;
+                        fileNameCCD = null;
+                    }
                 }
-            }
-            finally
-            {
-                ReleaseExcelObject(rg);
-                ReleaseExcelObject(ws);
-                ReleaseExcelObject(workbookTheFile);
-                ReleaseExcelObject(originalFile);
-            }
-
-            // Create a DataTable object for CCD file
-            Connect connection = new Connect();
-            DataSet rogersData = new DataSet();
-            DataTable dataTable = rogersData.Tables.Add("rogersTable");
-
-            try
-            {
-                string[] datasheets = connection.ExcelSheetNames(fileNameCCD);
-                string sheet = datasheets[0];
-                rogersData = connection.OpenExcelSheet(fileNameCCD, sheet);
-                dataTable = rogersData.Tables[0];
-
-                double sum = 0;
-                double total = 0;
-                // To find out which sum of values of Column is zero
-
-                dataRogers.Columns.Add("User Number", typeof(string));
-                dataRogers.Columns.Add("User Name", typeof(string));
-
-                // Add Columns to 'dataRogers' DataTable
-                for (int i = 5; i < dataTable.Columns.Count; i++)
+                catch (Exception exception)
                 {
+                    string msg = exception.Message + "\n" + "Please select valid CCD Rogers file.";
+                    MessageBox.Show(msg);
+                }
+                finally
+                {
+                    ReleaseExcelObject(rg);
+                    ReleaseExcelObject(ws);
+                    ReleaseExcelObject(workbookTheFile);
+                    ReleaseExcelObject(originalFile);
+                }
+                // Create a DataTable object for CCD file
+                Connect connection = new Connect();
+                DataSet rogersData = new DataSet();
+                DataTable dataTable = rogersData.Tables.Add("rogersTable");
+
+                try
+                {
+                    string[] datasheets = connection.ExcelSheetNames(fileNameCCD);
+                    string sheet = datasheets[0];
+                    rogersData = connection.OpenExcelSheet(fileNameCCD, sheet);
+                    dataTable = rogersData.Tables[0];
+
+                    double sum = 0;
+                    double total = 0;
+                    // To find out which sum of values of Column is zero
+
+                    dataRogers.Columns.Add("User Number", typeof(string));
+                    dataRogers.Columns.Add("User Name", typeof(string));
+
+                    // Add Columns to 'dataRogers' DataTable
+                    for (int i = 5; i < dataTable.Columns.Count; i++)
+                    {
+                        foreach (DataRow dr in dataTable.Rows)
+                        {
+                            if (DBNull.Value.Equals(dr[dataTable.Columns[i].ColumnName]))
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                sum = Convert.ToDouble(dr[dataTable.Columns[i].ColumnName]);
+                                total += sum;
+                            }
+                        }
+                        if (total != 0)
+                        {
+                            dataRogers.Columns.Add(dataTable.Columns[i].ColumnName, typeof(decimal));
+                        }
+                        total = 0;
+                    }
+
+                    lblDescRog.Text = statusMSG3 + "\n" + string.Format("{0}", ccdPath);
+                    statusMSG4 = lblDescRog.Text;
+                    // Create new DataTable object                
                     foreach (DataRow dr in dataTable.Rows)
                     {
-                        if (DBNull.Value.Equals(dr[dataTable.Columns[i].ColumnName]))
+                        DataRow newData = dataRogers.NewRow();
+                        for (int j = 0; j < dataRogers.Columns.Count; j++)
                         {
-                            break;
+                            newData[dataRogers.Columns[j].ColumnName] = dr[dataRogers.Columns[j].ColumnName];
                         }
-                        else
-                        {
-                            sum = Convert.ToDouble(dr[dataTable.Columns[i].ColumnName]);
-                            total += sum;
-                        }
+                        dataRogers.Rows.Add(newData);
                     }
-                    if (total != 0)
-                    {
-                        dataRogers.Columns.Add(dataTable.Columns[i].ColumnName, typeof(decimal));
-                    }
-                    total = 0;
-                }
 
-                lblDescRog.Text = statusMSG3 +"\n" + string.Format("{0}", ccdPath);
-                statusMSG4 = lblDescRog.Text;
-                // Create new DataTable object                
-                foreach (DataRow dr in dataTable.Rows)
+                    // Reordering Columns
+                    dataRogers.Columns["Credits and Discounts"].SetOrdinal(3);
+                    dataRogers.Columns.Add("Roam Like Home-All").SetOrdinal(4);
+                    dataRogers.Columns.Add("TAX").SetOrdinal(5);
+                    dataRogers.Columns["Subtotal"].SetOrdinal(6);
+                    dataRogers.Columns["Total Current Charges"].SetOrdinal(7);
+                    dataRogers.Columns.Add("Overcharges").SetOrdinal(8);
+                }
+                catch (Exception exception)
                 {
-                    DataRow newData = dataRogers.NewRow();
-                    for (int j = 0; j < dataRogers.Columns.Count; j++)
-                    {
-                        newData[dataRogers.Columns[j].ColumnName] = dr[dataRogers.Columns[j].ColumnName];
-                    }
-                    dataRogers.Rows.Add(newData);
+                    string msg = exception.Message + "\n" + "Please select valid CCD Rogers file.";
+                    MessageBox.Show(msg);
                 }
-
-                // Reordering Columns
-                dataRogers.Columns["Credits and Discounts"].SetOrdinal(3);
-                dataRogers.Columns.Add("Roam Like Home-All").SetOrdinal(4);
-                dataRogers.Columns.Add("TAX").SetOrdinal(5);
-                dataRogers.Columns["Subtotal"].SetOrdinal(6);
-                dataRogers.Columns["Total Current Charges"].SetOrdinal(7);
-                dataRogers.Columns.Add("Overcharges").SetOrdinal(8);
+                finally
+                {
+                    lblDescRog.Text = statusMSG4 + "\n\n" + "Monthly Charges breakdown Report loaded";
+                    int mcbR = dataRogers.Rows.Count;
+                    string msg = "{0} Users loaded";
+                    string msgFormat = string.Format(msg, mcbR);
+                    MessageBox.Show(msgFormat);
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                lblDescRog.Text = statusMSG4 + "\n\n" + "Monthly Charges breakdown Report loaded";
-                int mcbR = dataRogers.Rows.Count;
-                string msg = "{0} Users loaded";
-                string msgFormat = string.Format(msg, mcbR);
-                MessageBox.Show(msgFormat);
+                MessageBox.Show(ex.Message, "Please select valid File.");
             }
+
+            
         }
 
         private void btnRogers_IOCC_Click(object sender, EventArgs e)
         {
-            Connect connectIOCC = new Connect();
-            fileNameIOCC = Openfile();
-            string Path = fileNameIOCC.Split('\\')[fileNameIOCC.Split('\\').Length - 1];
-            lstStatus.Items.Add(Path);
-            DataSet IoccOriginalaData = new DataSet();
-            DataTable dataTable = IoccOriginalaData.Tables.Add("IOCC-Data-Table");
-            DataTable rogersIOCCdata = new DataTable();
-            lblDescRog.Text = Path + "\n" + "Loading...";
-            string msg1 = lblDescRog.Text;
-            string msg2 = null;
-            string msg3 = null;
-           
-            Excel.Application originalFile = new Excel.Application();
-            Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameIOCC);
-            Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
-            Excel.Range rg = ws.Cells[1, 1];
             try
             {
-                originalFile.Visible = false;
-                if (rg.Text != "Billing Account")
+                Connect connectIOCC = new Connect();
+                fileNameIOCC = Openfile();
+                string Path = fileNameIOCC.Split('\\')[fileNameIOCC.Split('\\').Length - 1];
+                lstStatus.Items.Add(Path);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+                DataSet IoccOriginalaData = new DataSet();
+                DataTable dataTable = IoccOriginalaData.Tables.Add("IOCC-Data-Table");
+                DataTable rogersIOCCdata = new DataTable();
+                lblDescRog.Text = Path + "\n" + "Loading...";
+                string msg1 = lblDescRog.Text;
+                string msg2 = null;
+                string msg3 = null;
+
+                Excel.Application originalFile = new Excel.Application();
+                Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameIOCC);
+                Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
+                Excel.Range rg = ws.Cells[1, 1];
+
+                bool valid = Path.Contains("Rogers");
+                bool valid2 = Path.Contains("Roam");
+                try
                 {
-                    rg.EntireRow.Delete();
-                    workbookTheFile.Save();
-                    workbookTheFile.Close();
-                }
-            }
-            finally
-            {
-                ReleaseExcelObject(ws);
-                ReleaseExcelObject(workbookTheFile);
-                ReleaseExcelObject(originalFile);
-            }
-
-            try
-            {                
-                string[] sheetNames = connectIOCC.ExcelSheetNames(fileNameIOCC);
-                string sheetName = sheetNames[0];
-                IoccOriginalaData = connectIOCC.OpenExcelSheet(fileNameIOCC, sheetName);
-                dataTable = IoccOriginalaData.Tables[0];
-
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    Roam roam = new Roam(row["User Number"], row["User Name"], row["Charges/Credits Description"], row["Other Charges/Credits Amount"]);
-                    iocc.Add(roam);
-                }
-                lblDescRog.Text = msg1 + "\n" + "has been loaded";
-                msg2 = lblDescRog.Text;
-
-                var reformData =
-                            from roam in iocc
-                            group roam by new
-                            {
-                                Number = roam.UserNumber,
-                                Name = roam.UserName,
-                                Description = roam.Description
-                            } into numberBy
-                            from sortByDescription in (
-                                from roam in numberBy
-                                group roam by roam.Description
-                            )
-                            group sortByDescription by numberBy.Key;
-
-                int ioccCount = iocc.Count();
-                List<string> columns = new List<string>();
-
-                foreach (var description in iocc)
-                {
-                    columns.Add(description.Description.ToString());
-                }
-                List<string> titleColumns = columns.Distinct().ToList();
-
-                rogersIOCCdata.Columns.Add("User Number", typeof(string));
-                rogersIOCCdata.Columns.Add("User Name", typeof(string));
-
-                foreach (string name in titleColumns)
-                {
-                    rogersIOCCdata.Columns.Add(name, typeof(decimal));
-                }
-
-
-                foreach (var data in reformData)
-                {
-                    foreach (var des in data)
+                    originalFile.Visible = false;
+                    if (valid == true && valid2 == true)
                     {
-                        foreach (var number in des)
+                        if (rg.Text != "Billing Account")
                         {
-                            if (rogersIOCCdata.Rows.Count > 0)
-                            {
-                                foreach (DataRow dataRow in rogersIOCCdata.Rows)
+                            rg.EntireRow.Delete();
+                            workbookTheFile.Save();
+                            workbookTheFile.Close();
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Are you sure this is Rogers - Roam Like Charges Breakdown?");
+                        Path = null;
+                        fileNameIOCC = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    string msg = ex.Message + "\n" + "Please select valid IOCC Rogers file.";
+                    MessageBox.Show(msg);
+                }
+                finally
+                {
+                    ReleaseExcelObject(ws);
+                    ReleaseExcelObject(workbookTheFile);
+                    ReleaseExcelObject(originalFile);
+                }
+
+                try
+                {
+                    string[] sheetNames = connectIOCC.ExcelSheetNames(fileNameIOCC);
+                    string sheetName = sheetNames[0];
+                    IoccOriginalaData = connectIOCC.OpenExcelSheet(fileNameIOCC, sheetName);
+                    dataTable = IoccOriginalaData.Tables[0];
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        Roam roam = new Roam(row["User Number"], row["User Name"], row["Charges/Credits Description"], row["Other Charges/Credits Amount"]);
+                        iocc.Add(roam);
+                    }
+                    lblDescRog.Text = msg1 + "\n" + "has been loaded";
+                    msg2 = lblDescRog.Text;
+
+                    var reformData =
+                                from roam in iocc
+                                group roam by new
                                 {
-                                    if (dataRow["User Number"].ToString() == number.UserNumber.ToString())
+                                    Number = roam.UserNumber,
+                                    Name = roam.UserName,
+                                    Description = roam.Description
+                                } into numberBy
+                                from sortByDescription in (
+                                    from roam in numberBy
+                                    group roam by roam.Description
+                                )
+                                group sortByDescription by numberBy.Key;
+
+                    int ioccCount = iocc.Count();
+                    List<string> columns = new List<string>();
+
+                    foreach (var description in iocc)
+                    {
+                        columns.Add(description.Description.ToString());
+                    }
+                    List<string> titleColumns = columns.Distinct().ToList();
+
+                    rogersIOCCdata.Columns.Add("User Number", typeof(string));
+                    rogersIOCCdata.Columns.Add("User Name", typeof(string));
+
+                    foreach (string name in titleColumns)
+                    {
+                        rogersIOCCdata.Columns.Add(name, typeof(decimal));
+                    }
+
+
+                    foreach (var data in reformData)
+                    {
+                        foreach (var des in data)
+                        {
+                            foreach (var number in des)
+                            {
+                                if (rogersIOCCdata.Rows.Count > 0)
+                                {
+                                    foreach (DataRow dataRow in rogersIOCCdata.Rows)
                                     {
-                                        for (int l = 0; l < titleColumns.Count; l++)
+                                        if (dataRow["User Number"].ToString() == number.UserNumber.ToString())
                                         {
-                                            double value = 0.0;
-                                            string title = titleColumns[l];
-                                            if (number.Description.ToString() == titleColumns[l])
+                                            for (int l = 0; l < titleColumns.Count; l++)
                                             {
-                                                value = Convert.ToDouble(data.Sum(x => x.Sum(y => (decimal)y.Amount)));
-                                                dataRow[title] = value;
-                                                break;
+                                                double value = 0.0;
+                                                string title = titleColumns[l];
+                                                if (number.Description.ToString() == titleColumns[l])
+                                                {
+                                                    value = Convert.ToDouble(data.Sum(x => x.Sum(y => (decimal)y.Amount)));
+                                                    dataRow[title] = value;
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            DataRow row = rogersIOCCdata.NewRow();
-                            row["User Number"] = number.UserNumber.ToString();
-                            row["User Name"] = number.UserName.ToString();
+                                DataRow row = rogersIOCCdata.NewRow();
+                                row["User Number"] = number.UserNumber.ToString();
+                                row["User Name"] = number.UserName.ToString();
 
-                            for (int l = 0; l < titleColumns.Count; l++)
-                            {
-                                double value = 0.0;
-                                string title = titleColumns[l];
-                                if (number.Description.ToString() == titleColumns[l])
+                                for (int l = 0; l < titleColumns.Count; l++)
                                 {
-                                    value = Convert.ToDouble(data.Sum(x => x.Sum(y => (decimal)y.Amount)));
-                                    row[title] = value;
+                                    double value = 0.0;
+                                    string title = titleColumns[l];
+                                    if (number.Description.ToString() == titleColumns[l])
+                                    {
+                                        value = Convert.ToDouble(data.Sum(x => x.Sum(y => (decimal)y.Amount)));
+                                        row[title] = value;
+                                    }
+                                    else
+                                    {
+                                        row[title] = value;
+                                    }
                                 }
-                                else
+                                int flag = 0;
+                                foreach (DataRow dr in rogersIOCCdata.Rows)
                                 {
-                                    row[title] = value;
+                                    if (number.UserNumber.ToString() == dr["User Number"].ToString())
+                                    {
+                                        flag = 1;
+                                    }
                                 }
-                            }
-                            int flag = 0;
-                            foreach (DataRow dr in rogersIOCCdata.Rows)
-                            {
-                                if (number.UserNumber.ToString() == dr["User Number"].ToString())
+                                if (flag == 0)
                                 {
-                                    flag = 1;
+                                    rogersIOCCdata.Rows.Add(row);
+                                    break;
                                 }
+                                flag = 0;
                             }
-                            if (flag == 0)
-                            {
-                                rogersIOCCdata.Rows.Add(row);
-                                break;
-                            }
-                            flag = 0;
                         }
                     }
-                }
 
-                decimal sum = 0;
-                decimal total = 0;
+                    decimal sum = 0;
+                    decimal total = 0;
 
-                reducedIOCCdata.Columns.Add("User Number", typeof(string));
-                reducedIOCCdata.Columns.Add("User Name", typeof(string));
-                lblDescRog.Text = msg2 + "\n" + "The data table has been transformed";
-                msg3 = lblDescRog.Text;
+                    reducedIOCCdata.Columns.Add("User Number", typeof(string));
+                    reducedIOCCdata.Columns.Add("User Name", typeof(string));
+                    lblDescRog.Text = msg2 + "\n" + "The data table has been transformed";
+                    msg3 = lblDescRog.Text;
 
 
-                for (int i = 0; i < rogersIOCCdata.Columns.Count; i++)
-                {
-                    foreach (DataRow dr in rogersIOCCdata.Rows)
+                    for (int i = 0; i < rogersIOCCdata.Columns.Count; i++)
                     {
-                        if (typeof(string) == dr[rogersIOCCdata.Columns[i].ColumnName].GetType())
+                        foreach (DataRow dr in rogersIOCCdata.Rows)
                         {
-                            break;
+                            if (typeof(string) == dr[rogersIOCCdata.Columns[i].ColumnName].GetType())
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                sum = Convert.ToDecimal(dr[rogersIOCCdata.Columns[i].ColumnName]);
+                                total += sum;
+                            }
+                        }
+                        if (total != 0)
+                        {
+                            reducedIOCCdata.Columns.Add(rogersIOCCdata.Columns[i].ColumnName, typeof(decimal));
+                            total = 0;
                         }
                         else
                         {
-                            sum = Convert.ToDecimal(dr[rogersIOCCdata.Columns[i].ColumnName]);
-                            total += sum;
+                            total = 0;
                         }
                     }
-                    if (total != 0)
-                    {
-                        reducedIOCCdata.Columns.Add(rogersIOCCdata.Columns[i].ColumnName, typeof(decimal));
-                        total = 0;
-                    }
-                    else
-                    {
-                        total = 0;
-                    }
-                }
 
-                foreach (DataRow dr in rogersIOCCdata.Rows)
-                {
-                    DataRow newData = reducedIOCCdata.NewRow();
-                    for (int k = 0; k < reducedIOCCdata.Columns.Count; k++)
+                    foreach (DataRow dr in rogersIOCCdata.Rows)
                     {
-                        newData[reducedIOCCdata.Columns[k].ColumnName] = dr[reducedIOCCdata.Columns[k].ColumnName];
-                        if (Convert.ToDouble(dr["Roam Like Home-All"].ToString()) == 0)
+                        DataRow newData = reducedIOCCdata.NewRow();
+                        for (int k = 0; k < reducedIOCCdata.Columns.Count; k++)
                         {
-                            newData["Roam Like Home-All"] = 3.00;
+                            newData[reducedIOCCdata.Columns[k].ColumnName] = dr[reducedIOCCdata.Columns[k].ColumnName];
+                            if (Convert.ToDouble(dr["Roam Like Home-All"].ToString()) == 0)
+                            {
+                                newData["Roam Like Home-All"] = 3.00;
+                            }
                         }
+                        reducedIOCCdata.Rows.Add(newData);
                     }
-                    reducedIOCCdata.Rows.Add(newData);
+                }
+                catch (Exception ex)
+                {
+                    string msg = ex.Message + "\n" + "Please select valid IOCC Rogers file.";
+                    MessageBox.Show(msg);
+                }
+                finally
+                {
+                    lblDescRog.Text = msg3 + "\n\n" + "Roam Like Charges Breakdown loaded";
+                    int mcbR = reducedIOCCdata.Rows.Count;
+                    string msg = "{0} Users loaded";
+                    string msgFormat = string.Format(msg, mcbR);
+                    MessageBox.Show(msgFormat, "Please select valid File.");
                 }
             }
-            finally
+            catch(Exception ex)
             {
-                lblDescRog.Text = msg3 + "\n\n" + "Roam Like Charges Breakdown loaded";
-                int mcbR = reducedIOCCdata.Rows.Count;
-                string msg = "{0} Users loaded";
-                string msgFormat = string.Format(msg, mcbR);
-                MessageBox.Show(msgFormat);
-            }
+                MessageBox.Show(ex.Message);
+            }            
         }
 
         private void btnCombinRogers_Click(object sender, EventArgs e)
@@ -1045,52 +1167,30 @@ namespace MobileReport
             int rowIndex = tableHeadRow + 1;
             int totalRows = rogersReport.Rows.Count;
 
-            double total = 0.0;
+            string col1 = "C{0}:C{1}";
+            string col2 = "D{0}:D{1}";
+            string col3 = "E{0}:E{1}";
+
+            int splitRow_Rogers = 8;
+            int splitColumn_Rogers = 5;
+            int overcharges_Rogers = 12;
+
             try
             {
-                GenerateExcelsheet(head, rogersSheet, rogersReport, tableHeadRow, 15, "Rogers");
+                GenerateExcelsheet(head, rogersSheet, rogersReport, tableHeadRow, 15, "Rogers");                
+                templateFormatting(rogersReport, rogersSheet, col1, col3, col2, splitRow_Rogers, splitColumn_Rogers, overcharges_Rogers, "Rogers");
 
                 lblDescRog.Text = msg1 + "\n" + "all data has been populated in worksheet.";
                 msg2 = lblDescRog.Text;
-
-                // Set the width of Division column
-                string col1 = "C{0}:C{1}";
-                string colRange = String.Format(col1, tableHeadRow + 1, rogersReport.Rows.Count + tableHeadRow);
-                range = rogersSheet.Range[colRange];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;                              // 2: left, 3: center, 4: right
-                // Set the width of Username column
-                string col2 = "E{0}:E{1}";
-                string colRange1 = String.Format(col2, tableHeadRow + 1, rogersReport.Rows.Count + tableHeadRow);
-                range = rogersSheet.Range[colRange1];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;
-
-                rogersSheet.Application.ActiveWindow.SplitRow = 8;
-                rogersSheet.Application.ActiveWindow.SplitColumn = 5;
-                rogersSheet.Application.ActiveWindow.FreezePanes = true;
-
-                for (int i = 1; i < rogersReport.Rows.Count + tableHeadRow; i++)
-                {
-                    range = rogersSheet.Cells[tableHeadRow + i, 12];
-                    if (range.Value2 > 0)
-                    {
-                        range = rogersSheet.Range[rogersSheet.Cells[tableHeadRow + i, 1], rogersSheet.Cells[tableHeadRow + i, rogersReport.Columns.Count]];
-                        range.Font.Bold = true;
-                        range.Interior.Color = Color.FromArgb(247, 208, 101);
-                    }
-                }
-
-                // Filter
-                range = rogersSheet.Range[rogersSheet.Cells[tableHeadRow, 1], rogersSheet.Cells[rogersReport.Columns.Count, rogersReport.Rows.Count + tableHeadRow]];
-                range.AutoFilter(1, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
-
+                
                 rogersSheet.Name = "Rogers";
                 application.Visible = true;
                 
                 lblDescRog.Text = msg2 + "\n\n" + "Opening Excel file" + "\n\n" + "Report has been creatd";
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
             finally
             {
@@ -1102,19 +1202,30 @@ namespace MobileReport
 
         private void btnVerizon_Click(object sender, EventArgs e)
         {
-            if(glCodes.Count == 0)
+            try
             {
-                btnVerizon.Equals(false);
-            }
-            else
-            {
-                verizonTable();
-                string msg1 = "Verizon Overview Charges Report has been uploaded";
-                string msg2 = "Verizon data has been re-created";
-                lblVerizon.Text = string.Concat(msg1, "\n", msg2);
+                if (glCodes.Count == 0)
+                {
+                    btnVerizon.Equals(false);
+                }
+                else
+                {
+                    string msg = "Loading...";
+                    lblVerizon.Text = msg;
+                    verizonTable();
+                    string msg1 = "Verizon Overview Charges Report has been uploaded";
+                    string msg2 = "Verizon data has been re-created";
+                    lblVerizon.Text = string.Concat(msg1, "\n", msg2);
 
-                lstStatus.Items.Add(msg1);
-                lstStatus.Items.Add(msg2);
+                    lstStatus.Items.Add(msg1);
+                    lstStatus.Items.Add(msg2);
+                    lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                    lstStatus.SelectedIndex = -1;
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1123,60 +1234,25 @@ namespace MobileReport
             Excel.Application application = new Excel.Application();
             Excel.Workbook verizonBook = application.Workbooks.Add();
             Excel.Worksheet verizonSheet = verizonBook.Worksheets.get_Item(1) as Excel.Worksheet;
+            
+            string col1 = "C{0}:C{1}";
+            string col2 = "D{0}:D{1}";
+            string col3 = "E{0}:E{1}";
+
+            int splitRow_Verizon = 8;
+            int splitColumn_Verizon = 5;
+            int overcharges_Verizon = 12;
+
             try
             {
                 GenerateExcelsheet(head, verizonSheet, verizonInvoice, tableHeadRow, 15, "Verizon");
-                string msg = "Excel sheet for Verizon has been created.\n";
-                lblVerizon.Text = msg;
-                lstStatus.Items.Add(msg);
-                // Set the width of User Name column
-                string col1 = "C{0}:C{1}";
-                string colRange1 = String.Format(col1, tableHeadRow + 1, verizonInvoice.Rows.Count + tableHeadRow);
-                range = verizonSheet.Range[colRange1];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;                              // 2: left, 3: center, 4: right
-
-                // Set the width of User Name column
-                string col2 = "D{0}:D{1}";
-                string colRange2 = String.Format(col2, tableHeadRow + 1, verizonInvoice.Rows.Count + tableHeadRow);
-                range = verizonSheet.Range[colRange2];
-                range.ColumnWidth = 15;
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;                              // 2: left, 3: center, 4: right
-
-                // Set the width of Position column
-                string col3 = "E{0}:E{1}";
-                string colRange3 = String.Format(col3, tableHeadRow + 1, verizonInvoice.Rows.Count + tableHeadRow);
-                range = verizonSheet.Range[colRange3];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;
-
-                verizonSheet.Application.ActiveWindow.SplitRow = 8;
-                verizonSheet.Application.ActiveWindow.SplitColumn = 5;
-                verizonSheet.Application.ActiveWindow.FreezePanes = true;
-
-                for (int i = 1; i < verizonInvoice.Rows.Count + tableHeadRow; i++)
-                {
-                    range = verizonSheet.Cells[tableHeadRow + i, 12];
-                    if (range.Value2 > 0)
-                    {
-                        range = verizonSheet.Range[verizonSheet.Cells[tableHeadRow + i, 1], verizonSheet.Cells[tableHeadRow + i, verizonInvoice.Columns.Count]];
-                        range.Font.Bold = true;
-                        range.Interior.Color = Color.FromArgb(247, 208, 101);
-                    }
-                }
-
-                // Filter
-                range = verizonSheet.Range[verizonSheet.Cells[tableHeadRow, 1], verizonSheet.Cells[verizonInvoice.Columns.Count, verizonInvoice.Rows.Count + tableHeadRow]];
-                range.AutoFilter(1, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
-                msg += "Verizon report created";
-                lblVerizon.Text = msg;
-                lstStatus.Items.Add("Verizon report created");
+                templateFormatting(verizonInvoice, verizonSheet, col1, col2, col3, splitRow_Verizon, splitColumn_Verizon, overcharges_Verizon, "Verizon");
                 verizonSheet.Name = "Verizon";
-
                 application.Visible = true;
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
             finally
             {
@@ -1188,77 +1264,52 @@ namespace MobileReport
 
         private void btnBellFile_Click(object sender, EventArgs e)
         {
-            if(glCodes.Count == 0 || areas.Count == 0)
+            try
             {
-                btnBellFile.Enabled = false;
+                if (glCodes.Count == 0 || areas.Count == 0)
+                {
+                    btnBellFile.Enabled = false;
+                }
+                else
+                {
+                    bellTable();
+                    string msg = "Bell data table has been created.";
+                    lblBell.Text = msg;
+                    lstStatus.Items.Add(msg);
+                    lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                    lstStatus.SelectedIndex = -1;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                bellTable();
-                string msg = "Bell data table has been created.";
-                lblBell.Text = msg;
-                lstStatus.Items.Add(msg);
-            }
-        }
+                MessageBox.Show(ex.Message);
+            }            
+        }       
 
         private void btnBellReport_Click(object sender, EventArgs e)
         {
             Excel.Application application = new Excel.Application();
             Excel.Workbook bellBook = application.Workbooks.Add();
             Excel.Worksheet bellSheet = bellBook.Worksheets.get_Item(1) as Excel.Worksheet;
+
+            string col1 = "C{0}:C{1}";
+            string col2 = "D{0}:D{1}";
+            string col3 = "E{0}:E{1}";
+
+            int splitRow_Bell = 8;
+            int splitColumn_Bell = 5;
+            int overcharges_Bell = 10;
+
             try
             {
-                GenerateExcelsheet(head, bellSheet, bellInvoice, tableHeadRow, 15, "Bell");
-                string msg = "All data has been populated on worksheet";
-                lblBell.Text = msg;
-
-                // Set the width of User Name column
-                string col1 = "C{0}:C{1}";
-                string colRange1 = String.Format(col1, tableHeadRow + 1, bellInvoice.Rows.Count + tableHeadRow);
-                range = bellSheet.Range[colRange1];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;                              // 2: left, 3: center, 4: right
-
-                // Set the width of User Name column
-                string col2 = "D{0}:D{1}";
-                string colRange2 = String.Format(col2, tableHeadRow + 1, bellInvoice.Rows.Count + tableHeadRow);
-                range = bellSheet.Range[colRange2];
-                range.ColumnWidth = 15;
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;                              // 2: left, 3: center, 4: right
-
-                // Set the width of Position column
-                string col3 = "E{0}:E{1}";
-                string colRange3 = String.Format(col3, tableHeadRow + 1, bellInvoice.Rows.Count + tableHeadRow);
-                range = bellSheet.Range[colRange3];
-                range.EntireColumn.AutoFit();
-                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
-                range.HorizontalAlignment = 2;
-
-                bellSheet.Application.ActiveWindow.SplitRow = 8;
-                bellSheet.Application.ActiveWindow.SplitColumn = 5;
-                bellSheet.Application.ActiveWindow.FreezePanes = true;
-
-                for (int i = 1; i < bellInvoice.Rows.Count + tableHeadRow; i++)
-                {
-                    range = bellSheet.Cells[tableHeadRow + i, 10];
-                    if (range.Value2 > 0)
-                    {
-                        range = bellSheet.Range[bellSheet.Cells[tableHeadRow + i, 1], bellSheet.Cells[tableHeadRow + i, bellInvoice.Columns.Count]];
-                        range.Font.Bold = true;
-                        range.Interior.Color = Color.FromArgb(247, 208, 101);
-                    }
-                }
-                // Filter
-                range = bellSheet.Range[bellSheet.Cells[tableHeadRow, 1], bellSheet.Cells[bellInvoice.Columns.Count, bellInvoice.Rows.Count + tableHeadRow]];
-                range.AutoFilter(1, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
-                
-                msg += "Bell Report created";
-                lblBell.Text = msg;
-                
+                GenerateExcelsheet(head, bellSheet, bellInvoice, tableHeadRow, 15, "Bell");                
+                templateFormatting(bellInvoice, bellSheet, col1, col2, col3, splitRow_Bell, splitColumn_Bell, overcharges_Bell, "Bell");
                 bellSheet.Name = "Bell";
                 application.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
             finally
             {
@@ -1292,22 +1343,109 @@ namespace MobileReport
             lblBell.Text = "";
         }
 
+        private void formatSetting(string col1, DataTable data, Excel.Worksheet sheet)
+        {            
+            try
+            {
+                string colRange = String.Format(col1, tableHeadRow + 1, data.Rows.Count + tableHeadRow);
+                range = sheet.Range[colRange];
+                range.EntireColumn.AutoFit();
+                range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
+                range.HorizontalAlignment = 2;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void freezePane(Excel.Worksheet sheet, int row, int column)
+        {            
+            try
+            {
+                sheet.Application.ActiveWindow.SplitRow = row;
+                sheet.Application.ActiveWindow.SplitColumn = column;
+                sheet.Application.ActiveWindow.FreezePanes = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void conditionalFormat(DataTable data, Excel.Worksheet sheet, int overcharges)
+        {
+            try
+            {
+                for (int i = 1; i < data.Rows.Count + tableHeadRow; i++)
+                {
+                    range = sheet.Cells[tableHeadRow + i, overcharges];
+                    if (range.Value2 > 0)
+                    {
+                        range = sheet.Range[sheet.Cells[tableHeadRow + i, 1], sheet.Cells[tableHeadRow + i, data.Columns.Count]];
+                        range.Font.Bold = true;
+                        range.Interior.Color = Color.FromArgb(247, 208, 101);
+                    }
+                }
+
+                // Filter
+                range = sheet.Range[sheet.Cells[tableHeadRow, 1], sheet.Cells[data.Columns.Count, data.Rows.Count + tableHeadRow]];
+                range.AutoFilter(1, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }            
+        }
+
+        private void templateFormatting(DataTable data, Excel.Worksheet sheet, string col1, string col2, string col3, int row, int column, int overcharges, string vender)
+        {
+            try
+            {
+                if (vender == "Rogers")
+                {
+                    formatSetting(col1, data, sheet);
+                    formatSetting(col2, data, sheet);
+                    freezePane(sheet, row, column);
+                    conditionalFormat(data, sheet, overcharges);
+                    rogersMsg += "Rogers worksheet has been formatted";
+                    lstStatus.Items.Add(rogersMsg);
+                    lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                    lstStatus.SelectedIndex = -1;
+                }
+                else if (vender == "Verizon")
+                {
+                    formatSetting(col1, data, sheet);
+                    formatSetting(col2, data, sheet);
+                    formatSetting(col3, data, sheet);
+                    freezePane(sheet, row, column);
+                    conditionalFormat(data, sheet, overcharges);
+                    verizonMsg += "Verizon worksheet has been formatted";
+                    lstStatus.Items.Add(verizonMsg);
+                    lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                    lstStatus.SelectedIndex = -1;
+                }
+                else if (vender == "Bell")
+                {
+                    formatSetting(col1, data, sheet);
+                    formatSetting(col2, data, sheet);
+                    formatSetting(col3, data, sheet);
+                    freezePane(sheet, row, column);
+                    conditionalFormat(data, sheet, overcharges);
+                    bellMsg += "Bell worksheet has been formatted";
+                    lstStatus.Items.Add(bellMsg);
+                    lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                    lstStatus.SelectedIndex = -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }            
+        }
+
         private void btnCreate_Click(object sender, EventArgs e)
         {
-            /*
-            if(DBNull.Value.Equals(verizonInvoice) == true || DBNull.Value.Equals(dataRogers) == true || DBNull.Value.Equals(bellInvoice) == true)
-            {
-                btnCreate.Equals(false);
-            }
-            else
-            {
-                btnCreate.Equals(true);
-                lstStatus.Items.Add("Data table of Rogers, Verizon, and Bell uploaded");
-                workbook.Worksheets.Add(worksheet);
-                workbook.Worksheets.Add(worksheet1);
-                workbook.Worksheets.Add(worksheet2);
-            }
-            */
             rogersInvoice = CombinedTable();
 
             worksheet = workbook.Worksheets.get_Item(1) as Excel.Worksheet;
@@ -1315,18 +1453,69 @@ namespace MobileReport
             worksheet2 = workbook.Worksheets.get_Item(1) as Excel.Worksheet;
 
             worksheet = workbook.Worksheets.Add(After: workbook.Worksheets.Item[workbook.Worksheets.Count]);
-            worksheet.Name = "Rogers";
+            worksheet.Name = "Rogers";               
             worksheet1 = workbook.Worksheets.Add(After: workbook.Worksheets.Item[workbook.Worksheets.Count]);
             worksheet1.Name = "Verizon";
             worksheet2 = workbook.Worksheets.Add(After: workbook.Worksheets.Item[workbook.Worksheets.Count]);
             worksheet2.Name = "Bell";
-           
+            
+            lstStatus.Items.Add("Data table of Rogers, Verizon, and Bell uploaded");
+            lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+            lstStatus.SelectedIndex = -1;
+
             try
-            {                
+            {
+                string col1 = "C{0}:C{1}";
+                string col2 = "D{0}:D{1}";
+                string col3 = "E{0}:E{1}";
+
+                int splitRow_Rogers = 8;
+                int splitColumn_Rogers = 5;
+                int overcharges_Rogers = 12;
+
+                int splitRow_Verizon = 8;
+                int splitColumn_Verizon = 5;
+                int overcharges_Verizon = 12;
+
+                int splitRow_Bell = 8;
+                int splitColumn_Bell = 5;
+                int overcharges_Bell = 10;
+
+                // Rogers
                 GenerateExcelsheet(head, worksheet, rogersInvoice, tableHeadRow, 15, "Rogers");
+                templateFormatting(rogersInvoice, worksheet, col1, col3, col2, splitRow_Rogers, splitColumn_Rogers, overcharges_Rogers, "Rogers");
+                string msgR = "Rogers worksheet created";
+                lblHome.Text = msgR;
+                lstStatus.Items.Add(msgR);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+
+                // Verizon
                 GenerateExcelsheet(head, worksheet1, verizonInvoice, tableHeadRow, 15, "Verizon");
+                templateFormatting(verizonInvoice, worksheet1, col1, col2, col3, splitRow_Verizon, splitColumn_Verizon, overcharges_Verizon, "Verizon");
+                string msgV = "Verizon worksheet created";
+                lblHome.Text = msgV;
+                lstStatus.Items.Add(msgV);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+
+                // Bell
                 GenerateExcelsheet(head, worksheet2, bellInvoice, tableHeadRow, 15, "Bell");
+                templateFormatting(bellInvoice, worksheet2, col1, col2, col3, splitRow_Bell, splitColumn_Bell, overcharges_Bell, "Bell");
+                string msgB = "Bell worksheet created";
+                lblHome.Text = msgB;
+                lstStatus.Items.Add(msgB);
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+
+                lstStatus.SelectedIndex = lstStatus.Items.Count - 1;
+                lstStatus.SelectedIndex = -1;
+
                 integratedReport.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
             finally
             {
