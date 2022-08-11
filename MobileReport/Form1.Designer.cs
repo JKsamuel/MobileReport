@@ -73,7 +73,7 @@
             this.metroTabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.metroTabControl1.Location = new System.Drawing.Point(0, 60);
             this.metroTabControl1.Name = "metroTabControl1";
-            this.metroTabControl1.SelectedIndex = 3;
+            this.metroTabControl1.SelectedIndex = 4;
             this.metroTabControl1.Size = new System.Drawing.Size(416, 326);
             this.metroTabControl1.TabIndex = 0;
             this.metroTabControl1.UseSelectable = true;
@@ -396,7 +396,7 @@
             this.metroTabPage5.Text = "Contact";
             this.metroTabPage5.VerticalScrollbarBarColor = true;
             this.metroTabPage5.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage5.VerticalScrollbarSize = 9;
+            this.metroTabPage5.VerticalScrollbarSize = 8;
             // 
             // lblContact
             // 
@@ -405,8 +405,8 @@
             this.lblContact.Size = new System.Drawing.Size(384, 252);
             this.lblContact.TabIndex = 2;
             this.lblContact.Text = "Creeated by Samuel Jongeun Kim\r\n\r\n- Target framework: .NET Framework 4.8\r\n- Used " +
-    "skills: ADO.NET(DataSet, OleDB), LINQ\r\n- Platform target: 64bit\r\n- https://githu" +
-    "b.com/JKsamuel/MobileReport\r\n\r\n";
+    "skills: ADO.NET\r\n- Platform target: 64bit\r\n- https://github.com/JKsamuel/MobileR" +
+    "eport\r\n\r\n";
             // 
             // Form1
             // 

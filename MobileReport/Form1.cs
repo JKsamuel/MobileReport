@@ -77,7 +77,7 @@ namespace MobileReport
         }
 
         private DataTable verizonTable()
-        {
+        {            
             fileNameVerizon = Openfile();
             string path = fileNameVerizon.Split('\\')[fileNameVerizon.Split('\\').Length - 1];
             Connect connection = new Connect();
