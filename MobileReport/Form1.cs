@@ -84,6 +84,11 @@ namespace MobileReport
             DataSet verizonData = new DataSet();
             DataTable verizonDT = new DataTable();
 
+            string[] datasheets = connection.ExcelSheetNames(fileNameVerizon);
+            string sheet = datasheets[0];
+            verizonData = connection.OpenExcelSheet(fileNameVerizon, sheet);
+            verizonDT = verizonData.Tables[0];
+
             verizonInvoice.Columns.Add("User Number", typeof(string));
             verizonInvoice.Columns.Add("User Name", typeof(string));
             verizonInvoice.Columns.Add("MRC", typeof(decimal));
@@ -94,31 +99,43 @@ namespace MobileReport
             verizonInvoice.Columns.Add("Equipment charges", typeof(decimal));
             verizonInvoice.Columns.Add("Third party charges", typeof(decimal));
             verizonInvoice.Columns.Add("International charges", typeof(decimal));
-            verizonInvoice.Columns.Add("Voice charges", typeof(decimal));
+            verizonInvoice.Columns.Add("Voice charges", typeof(decimal));            
 
-            string[] datasheets = connection.ExcelSheetNames(fileNameVerizon);
-            string sheet = datasheets[0];
-            verizonData = connection.OpenExcelSheet(fileNameVerizon, sheet);
-            verizonDT = verizonData.Tables[0];
-
-            int endRow = verizonDT.Rows.Count;
-            string verizonCount = String.Format("{0}users uploaded", endRow);
-            MessageBox.Show(verizonCount);
+            int endRow = verizonDT.Rows.Count;            
 
             Excel.Application originalFile = new Excel.Application();
             Excel.Workbook workbookTheFile = originalFile.Workbooks.Open(fileNameVerizon);
             Excel.Worksheet ws = workbookTheFile.Worksheets.get_Item(1) as Excel.Worksheet;
             Excel.Range rg = ws.Cells[endRow + 1, 1];
-
+            
             try
             {
-                originalFile.Visible = false;
+                int flag = 1;
+                originalFile.Visible = true;
+                for(int i = 1; i < verizonDT.Rows.Count; i++)
+                {
+                    Excel.Range c = ws.Cells[1, 1];
+                    if(c.Text != "Wireless number" || c.Text == null)
+                    {
+                        c.EntireRow.Delete();
+                        flag++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    workbookTheFile.Save();
+                    
+                }
+                string tempMsg = String.Format("{0} needless rows for data table has been removed.", flag);
+                MessageBox.Show(tempMsg);
+
                 if (rg.Text != "Total")
                 {
                     rg.EntireRow.Delete();
-                    workbookTheFile.Save();
-                    workbookTheFile.Close();
+                    workbookTheFile.Save();                    
                 }
+                workbookTheFile.Close();
             }
             finally
             {
@@ -127,6 +144,13 @@ namespace MobileReport
                 ReleaseExcelObject(workbookTheFile);
                 ReleaseExcelObject(originalFile);
             }
+
+            // re-connect Excel file.
+            string[] datasheets1 = connection.ExcelSheetNames(fileNameVerizon);
+            string sheet1 = datasheets1[0];
+            verizonData = connection.OpenExcelSheet(fileNameVerizon, sheet1);
+            verizonDT = verizonData.Tables[0];
+
             string msg = "Re-created the file and has been saved\n";
             lblVerizon.Text = msg;
 
@@ -183,6 +207,9 @@ namespace MobileReport
             lstStatus.SelectedIndex = -1;
             msg += "Data table has been re-created";
             lblVerizon.Text = msg;
+
+            string verizonCount = String.Format("{0}users uploaded", verizonInvoice.Rows.Count);
+            MessageBox.Show(verizonCount);
 
             return verizonInvoice;
         }
