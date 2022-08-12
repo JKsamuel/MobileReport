@@ -111,7 +111,7 @@ namespace MobileReport
             try
             {
                 int flag = 1;
-                originalFile.Visible = true;
+                originalFile.Visible = false;
                 for(int i = 1; i < verizonDT.Rows.Count; i++)
                 {
                     Excel.Range c = ws.Cells[1, 1];
@@ -133,7 +133,7 @@ namespace MobileReport
                 if (rg.Text != "Total")
                 {
                     rg.EntireRow.Delete();
-                    workbookTheFile.Save();                    
+                    workbookTheFile.Save();
                 }
                 workbookTheFile.Close();
             }
