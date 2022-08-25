@@ -117,4 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="lblContact.Text" xml:space="preserve">
+    <value>Creeated by Samuel Jongeun Kim
+
+- Target framework: .NET Framework 4.8
+- Used skills: ADO.NET, Microsoft.Office.Interop.Excel 
+- Platform target: 64bit
+- https://github.com/JKsamuel/MobileReport
+
+</value>
+  </data>
 </root>

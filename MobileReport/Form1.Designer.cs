@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.metroTabControl1 = new MetroFramework.Controls.MetroTabControl();
             this.metroTabPage1 = new MetroFramework.Controls.MetroTabPage();
             this.lblHome = new System.Windows.Forms.Label();
@@ -396,7 +397,7 @@
             this.metroTabPage5.Text = "Contact";
             this.metroTabPage5.VerticalScrollbarBarColor = true;
             this.metroTabPage5.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage5.VerticalScrollbarSize = 8;
+            this.metroTabPage5.VerticalScrollbarSize = 7;
             // 
             // lblContact
             // 
@@ -404,9 +405,7 @@
             this.lblContact.Name = "lblContact";
             this.lblContact.Size = new System.Drawing.Size(384, 252);
             this.lblContact.TabIndex = 2;
-            this.lblContact.Text = "Creeated by Samuel Jongeun Kim\r\n\r\n- Target framework: .NET Framework 4.8\r\n- Used " +
-    "skills: ADO.NET\r\n- Platform target: 64bit\r\n- https://github.com/JKsamuel/MobileR" +
-    "eport\r\n\r\n";
+            this.lblContact.Text = resources.GetString("lblContact.Text");
             // 
             // Form1
             // 
