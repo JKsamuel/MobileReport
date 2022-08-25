@@ -62,6 +62,7 @@ namespace MobileReport
         private string verizonMsg = null;
         private string bellMsg = null;
 
+        // Open file browser
         private string Openfile()
         {
             string path = null;
@@ -76,6 +77,7 @@ namespace MobileReport
             return path;
         }
 
+        // Create DataTable for verizon
         private DataTable verizonTable()
         {            
             fileNameVerizon = Openfile();
@@ -125,7 +127,6 @@ namespace MobileReport
                         break;
                     }
                     workbookTheFile.Save();
-                    
                 }
                 string tempMsg = String.Format("{0} needless rows for data table has been removed.", flag);
                 MessageBox.Show(tempMsg);
@@ -214,6 +215,7 @@ namespace MobileReport
             return verizonInvoice;
         }
 
+        // Create DataTable for Rogers
         private DataTable CombinedTable()
         {
             DataTable combinedTable = new DataTable();
@@ -367,6 +369,7 @@ namespace MobileReport
             return rogersInvoice;
         }
 
+        // Create DataTable for Bell
         private DataTable bellTable()
         {
             fileNameBell = Openfile();
@@ -520,6 +523,7 @@ namespace MobileReport
             return bellInvoice;
         }
 
+        // Excel: Write head for summary table in worksheet
         private void HeadTable(Excel.Range head, Excel.Worksheet worksheet, DataTable dt, int row, int col, int columnWidth)
         {
             head = worksheet.Cells[row, col + 1];
@@ -535,16 +539,25 @@ namespace MobileReport
             head.Borders.Color = Color.FromKnownColor(KnownColor.White);
         }
 
+        /// <summary>
+        /// Method for creating Excel worksheet in workbook
+        /// </summary>
+        /// <param name="head"> Excel range, already set </param>
+        /// <param name="worksheet"> Excel worksheet </param>
+        /// <param name="dt"> DataTable object </param>
+        /// <param name="row"> The location of DataTable, start point of row </param>
+        /// <param name="columnWidth"> The cell size of width </param>
+        /// <param name="vendor"> Vendor </param>
         private void GenerateExcelsheet(Excel.Range head, Excel.Worksheet worksheet, DataTable dt, int row, int columnWidth, string vendor)
         {
-            int rowIndex = tableHeadRow + 1;
+            int rowIndex = row + 1;
             int totalRows = dt.Rows.Count;
             double total = 0.0;
 
             for (int i = 0; i < dt.Columns.Count; i++)
             {
-                HeadTable(head, worksheet, dt, tableHeadRow, i, 15);
-
+                HeadTable(head, worksheet, dt, row, i, 15);
+                // The typr of value in first to 4th columns are String. So, we can start with 5th column
                 if (i >= 5)
                 {
                     HeadTable(head, worksheet, dt, 1, i, 15);
@@ -592,7 +605,7 @@ namespace MobileReport
                 if(vendor == "Rogers")
                 {
                     string txt = "writing {0} rows / {1} rows";
-                    string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
+                    string statusTxt = string.Format(txt, rowIndex - row - 1, totalRows);
                     lblDescRog.Text = statusTxt;
                     lblHome.Text = statusTxt;
 
@@ -600,14 +613,14 @@ namespace MobileReport
                 else if(vendor == "Verizon")
                 {
                     string txt = "writing {0} rows / {1} rows";
-                    string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
+                    string statusTxt = string.Format(txt, rowIndex - row - 1, totalRows);
                     lblVerizon.Text = statusTxt;
                     lblHome.Text = statusTxt;
                 }
                 else if(vendor == "Bell")
                 {
                     string txt = "writing {0} rows / {1} rows";
-                    string statusTxt = string.Format(txt, rowIndex - tableHeadRow - 1, totalRows);
+                    string statusTxt = string.Format(txt, rowIndex - row - 1, totalRows);
                     lblBell.Text = statusTxt;
                     lblHome.Text = statusTxt;
                 }                               
