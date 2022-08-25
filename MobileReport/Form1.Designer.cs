@@ -397,7 +397,7 @@
             this.metroTabPage5.Text = "Contact";
             this.metroTabPage5.VerticalScrollbarBarColor = true;
             this.metroTabPage5.VerticalScrollbarHighlightOnWheel = false;
-            this.metroTabPage5.VerticalScrollbarSize = 7;
+            this.metroTabPage5.VerticalScrollbarSize = 6;
             // 
             // lblContact
             // 
